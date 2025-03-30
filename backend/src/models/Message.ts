@@ -6,6 +6,8 @@ export interface Message {
   room_id: string;
   sender_id: string;
   content: string;
+  file_id: string | null;
+  message_type: "text" | "image";
   created_at: Date;
   username?: string;
 }
@@ -14,11 +16,16 @@ class MessageModel {
   async create(
     roomId: string,
     senderId: string,
-    content: string
+    content: string,
+    fileId?: string
   ): Promise<Message> {
+    const messageType = fileId ? "image" : "text";
+
     const result = await pool.query(
-      "INSERT INTO messages (room_id, sender_id, content) VALUES ($1, $2, $3) RETURNING *",
-      [roomId, senderId, content]
+      `INSERT INTO messages (room_id, sender_id, content, file_id, message_type) 
+       VALUES ($1, $2, $3, $4, $5) 
+       RETURNING *`,
+      [roomId, senderId, content, fileId || null, messageType]
     );
 
     return result.rows[0];

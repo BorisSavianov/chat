@@ -56,19 +56,29 @@ export default function setupSocketIO(server: http.Server) {
       console.log(`${username} joined room ${roomId}`);
     });
 
-    // Handle new messages
+    // Handle new messages (text or with image)
     socket.on("send-message", async (data) => {
       try {
-        const { roomId, content } = data;
+        const { roomId, content, fileId } = data;
 
         // Save message to database
-        const message = await MessageModel.create(roomId, userId, content);
+        const message = await MessageModel.create(
+          roomId,
+          userId,
+          content || "",
+          fileId
+        );
 
         // Add username to message
         const messageWithUser = {
           ...message,
           username,
         };
+
+        // If it's an image message, add the file URL
+        if (message.message_type === "image" && message.file_id) {
+          messageWithUser.fileUrl = `/api/files/${message.file_id}`;
+        }
 
         // Broadcast to room
         io.to(roomId).emit("new-message", messageWithUser);

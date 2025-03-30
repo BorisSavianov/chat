@@ -3,6 +3,7 @@ import { Router } from "express";
 import { authenticate, AuthRequest } from "../middleware/auth";
 import RoomModel from "../models/Room";
 import MessageModel from "../models/Message";
+import FileService from "../services/fileService";
 
 const router = Router();
 
@@ -80,11 +81,65 @@ router.get("/rooms/:roomId/messages", authenticate, async (req, res) => {
     }
 
     const messages = await MessageModel.getByRoomId(roomId, limit);
-    res.json(messages.reverse());
+
+    // Transform the response to include file URLs for image messages
+    const transformedMessages = messages.map((msg) => {
+      if (msg.message_type === "image" && msg.file_id) {
+        return {
+          ...msg,
+          fileUrl: `/api/files/${msg.file_id}`,
+        };
+      }
+      return msg;
+    });
+
+    res.json(transformedMessages.reverse());
   } catch (error) {
     console.error("Error fetching messages:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
+
+// Send message with image
+router.post(
+  "/rooms/:roomId/messages",
+  authenticate,
+  async (req: AuthRequest, res) => {
+    try {
+      const { roomId } = req.params;
+      const { content, fileId } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const room = await RoomModel.findById(roomId);
+      if (!room) {
+        return res.status(404).json({ message: "Room not found" });
+      }
+
+      // Check if this user is a member of the room
+      const members = await RoomModel.getMembers(roomId);
+      if (!members.includes(userId)) {
+        return res
+          .status(403)
+          .json({ message: "You are not a member of this room" });
+      }
+
+      const message = await MessageModel.create(
+        roomId,
+        userId,
+        content || "",
+        fileId
+      );
+
+      res.status(201).json(message);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
 
 export default router;

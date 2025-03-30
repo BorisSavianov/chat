@@ -8,6 +8,8 @@ import { connectRedis } from "./config/redis";
 import setupSocketIO from "./services/socket";
 import authRoutes from "./routes/auth";
 import chatRoutes from "./routes/chat";
+import fileRoutes from "./routes/files";
+import path from "path";
 
 dotenv.config();
 
@@ -22,12 +24,17 @@ connectRedis().catch(console.error);
 
 // Middleware
 app.use(cors());
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false, // Allow serving uploaded files
+  })
+);
 app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/files", fileRoutes);
 
 // Health check endpoint
 app.get("/health", (req, res) => {

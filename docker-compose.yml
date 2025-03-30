@@ -31,6 +31,7 @@ services:
       - POSTGRES_DB=chatapp
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=your_jwt_secret_key
+      - UPLOAD_DIR=/app/uploads
     depends_on:
       - postgres
       - redis
@@ -39,6 +40,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - uploads-data:/app/uploads
 
   frontend:
     build:
@@ -57,3 +59,4 @@ services:
 
 volumes:
   postgres-data:
+  uploads-data:
