@@ -11,22 +11,33 @@
   let error = '';
 
   onMount(async () => {
-    try {
-      const roomId = $page.params.roomId;
-      
-      // Fetch room details and messages
-      await chatService.getMessages(roomId);
-      
-      // Subscribe to messages store
-      const unsubscribe = messagesStore.subscribe(value => {
-        messages = value;
-      });
+  try {
+    const roomId = $page.params.roomId;
 
-      return unsubscribe;
-    } catch (err) {
-      error = 'Failed to load room';
-    }
-  });
+    // Save room ID to local storage for auto-reconnect
+    localStorage.setItem("current_room", roomId);
+
+    // Fetch room details and messages
+    await chatService.getMessages(roomId);
+
+    // Ensure WebSocket is connected
+    const socket = await chatService.connectSocket();
+    
+    // Always rejoin the room after refresh
+    socket.emit("join-room", roomId);
+    currentRoomStore.set({ id: roomId } as any);
+
+    // Subscribe to message updates
+    const unsubscribe = messagesStore.subscribe(value => {
+      messages = value;
+    });
+
+    return unsubscribe;
+  } catch (err) {
+    error = 'Failed to load room';
+  }
+});
+
 
   function sendMessage() {
     if (!messageInput.trim()) return;
@@ -48,6 +59,7 @@
   }
 </script>
 
+<title>Chat</title>
 <div class="flex flex-col h-full">
   {#if error}
     <div class="bg-red-100 text-red-700 p-4">{error}</div>

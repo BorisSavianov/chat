@@ -3,6 +3,7 @@
   import { authStore } from '$lib/stores/store';
 </script>
 
+<title>Profile</title>
 <div class="p-6">
   <h1 class="text-2xl font-bold mb-6">User Profile</h1>
 
@@ -11,11 +12,6 @@
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2">Username</label>
         <p class="bg-gray-100 p-2 rounded">{$authStore.user.username}</p>
-      </div>
-
-      <div class="mb-4">
-        <label class="block text-gray-700 font-bold mb-2">Email</label>
-        <p class="bg-gray-100 p-2 rounded">{$authStore.user.email}</p>
       </div>
 
       <div>
