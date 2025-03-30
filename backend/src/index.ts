@@ -23,7 +23,15 @@ const io = setupSocketIO(server);
 connectRedis().catch(console.error);
 
 // Middleware
-app.use(cors());
+// Update the CORS configuration
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173", // Adjust this to match your frontend URL
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+    optionsSuccessStatus: 204,
+  })
+);
 app.use(
   helmet({
     crossOriginResourcePolicy: false, // Allow serving uploaded files

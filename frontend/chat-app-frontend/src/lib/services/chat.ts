@@ -84,7 +84,7 @@ export const chatService = {
 
 			// Join socket room
 			socket?.emit('join-room', roomId);
-			currentRoomStore.set(roomId as any);
+			currentRoomStore.set({ id: roomId } as any);
 			return roomId;
 		} catch (error) {
 			console.error('Error joining room:', error);
@@ -108,8 +108,28 @@ export const chatService = {
 		}
 	},
 
-	sendMessage(roomId: string, content: string) {
-		socket?.emit('send-message', { roomId, content });
+	sendMessage(roomId: string, content: string, fileId: string | null = null) {
+		socket?.emit('send-message', { roomId, content, fileId });
+	},
+
+	async uploadImage(file: File) {
+		try {
+			const token = localStorage.getItem('chat_token');
+			const formData = new FormData();
+			formData.append('file', file);
+
+			const response = await axios.post(`${API_URL}/files/upload`, formData, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'multipart/form-data'
+				}
+			});
+
+			return response.data;
+		} catch (error) {
+			console.error('Error uploading image:', error);
+			throw error;
+		}
 	},
 
 	disconnect() {

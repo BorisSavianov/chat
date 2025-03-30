@@ -13,8 +13,9 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 export default function setupSocketIO(server: http.Server) {
   const io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || "*",
+      origin: process.env.FRONTEND_URL || "http://localhost:5173", // Same as above
       methods: ["GET", "POST"],
+      credentials: true,
     },
   });
 
@@ -77,7 +78,7 @@ export default function setupSocketIO(server: http.Server) {
 
         // If it's an image message, add the file URL
         if (message.message_type === "image" && message.file_id) {
-          messageWithUser.fileUrl = `/api/files/${message.file_id}`;
+          messageWithUser.fileUrl = `/files/${message.file_id}`;
         }
 
         // Broadcast to room

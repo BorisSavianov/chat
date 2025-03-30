@@ -1,11 +1,15 @@
 // src/services/fileService.ts
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url"; // <-- Import this
 import { v4 as uuidv4 } from "uuid";
 import pool from "../config/database";
 
-const UPLOAD_DIR =
-  process.env.UPLOAD_DIR || path.join(__dirname, "../../uploads");
+// Workaround for __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const UPLOAD_DIR = path.join(__dirname, "../../uploads");
 
 // Ensure upload directory exists
 if (!fs.existsSync(UPLOAD_DIR)) {
@@ -64,7 +68,18 @@ class FileService {
 
     try {
       const buffer = await fs.promises.readFile(filePath);
-      return { metadata, buffer };
+      return {
+        metadata: {
+          id: metadata.id,
+          filename: metadata.filename,
+          originalName: metadata.original_name, // Convert to camelCase
+          mimeType: metadata.mime_type, // Convert to camelCase
+          size: metadata.size,
+          userId: metadata.user_id, // Convert to camelCase
+          createdAt: metadata.created_at,
+        },
+        buffer,
+      };
     } catch (error) {
       console.error(`File not found on disk: ${filePath}`);
       return null;

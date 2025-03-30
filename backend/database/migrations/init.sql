@@ -40,3 +40,4 @@ CREATE TABLE IF NOT EXISTS room_members (
 -- Insert a general chat room
 INSERT INTO rooms (name, is_private) VALUES ('General', FALSE)
 ON CONFLICT DO NOTHING;
+
